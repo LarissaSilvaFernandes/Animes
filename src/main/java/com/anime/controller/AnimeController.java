@@ -7,17 +7,17 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/rota-anime")
 public class AnimeController {
 
-    private AnimeService animeService;
+    private final AnimeService animeService;
 
     public AnimeController(AnimeService animeService) {
         this.animeService = animeService;
@@ -25,7 +25,8 @@ public class AnimeController {
 
     @PostMapping
     public ResponseEntity<AnimeResponse> criarAnime(@RequestBody @Valid AnimeRequest animeRequest) {
-        return animeService.criarAnime(animeRequest);
+        AnimeResponse animeResponse = animeService.criarAnime(animeRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(animeResponse);
     }
 
 
@@ -34,11 +35,25 @@ public class AnimeController {
                                                                              @RequestParam(name = "page", required = false, defaultValue = "0") int page,
                                                                              @RequestParam(name = "pageSize", required = false, defaultValue = "5") int pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        return animeService.listarOuFiltragem(genero, pageable);
+        Page<AnimeResponse> animeResponses = animeService.listarOuFiltragem(genero, pageable);
+        return ResponseEntity.status(HttpStatus.OK).body(animeResponses);
     }
 
     @GetMapping(("/{id}"))
     public ResponseEntity<AnimeResponse> buscarPorId(@PathVariable UUID id) {
-        return animeService.buscarPorId(id);
+        AnimeResponse animeResponse = animeService.buscarPorId(id);
+        return ResponseEntity.status(HttpStatus.OK).body(animeResponse);
+    }
+
+    @PutMapping(("/{id}"))
+    public ResponseEntity<AnimeResponse> atualizarAnime(@PathVariable UUID id, @RequestBody AnimeRequest animeRequest) {
+        AnimeResponse animeResponse = animeService.atualizarAnime(id, animeRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(animeResponse);
+    }
+
+    @DeleteMapping(("/{id}"))
+    public ResponseEntity<Void> deletarAnime(@PathVariable UUID id) {
+        animeService.deletarAnime(id);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
